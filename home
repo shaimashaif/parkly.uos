@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PARKLY — Smart University Parking</title>
+  <!-- Lucide icon library (SVG) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ——— reset & base ——— */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:       #0D1B2A;
+      --navy-soft:  #1B263B;
+      --taupe:      #3D5A80;
+      --taupe-light:#98B4C7;
+      --beige:      #C8D9E6;
+      --beige-pale: #F2EFE7;
+      --ivory:      #FFFFFF;
+      --sage:       #4B6B7C;
+      --sage-light: #98B4C7;
+      --sage-pale:  #EAF2F8;
+      --card:       rgba(248,246,241,0.82);
+      --border:     rgba(61,90,128,0.28);
+      --shadow:     0 8px 40px rgba(13,27,42,0.08);
+      --shadow-lg:  0 24px 80px rgba(13,27,42,0.14);
+      --red:        #1B263B;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--ivory);
+      color: var(--navy);
+      overflow-x: hidden;
+      line-height: 1.65;
+    }
+
+    /* ——— lucide svg sizing helper ——— */
+    .lucide {
+      display: inline-block;
+      width: 1.25em;
+      height: 1.25em;
+      vertical-align: middle;
+      stroke-width: 1.8;
+      flex-shrink: 0;
+    }
+
+    /* ——— scrollbar ——— */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--taupe-light); border-radius: 99px; }
+
+    /* ——— nav ——— */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(248,246,241,0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: box-shadow 0.3s;
+    }
+    nav.scrolled { box-shadow: var(--shadow); }
+    .nav-logo {
+      font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800;
+      color: var(--navy); letter-spacing: -0.03em;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .nav-logo span { color: var(--sage); }
+    .nav-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--sage);
+      animation: pulse-dot 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { box-shadow: 0 0 0 0 rgba(75,107,124,0.5); }
+      50%      { box-shadow: 0 0 0 7px rgba(75,107,124,0); }
+    }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a {
+      font-size: 0.875rem; font-weight: 500;
+      color: var(--navy); text-decoration: none;
+      opacity: 0.55; transition: opacity 0.2s, color 0.2s;
+      position: relative;
+    }
+    .nav-links a:not(.nav-cta)::after {
+      content:''; position:absolute; left:0; bottom:-4px;
+      width:100%; height:2px; background:var(--sage);
+      transform:scaleX(0); transform-origin:right;
+      transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .nav-links a:not(.nav-cta):hover::after { transform:scaleX(1); transform-origin:left; }
+    .nav-links a:hover { opacity: 1; }
+    .nav-cta {
+      background: var(--navy) !important; color: white !important;
+      opacity: 1 !important; padding: 0.5rem 1.25rem;
+      border-radius: 99px; font-weight: 600 !important;
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+    }
+    .nav-cta:hover { background: var(--navy-soft) !important; transform: translateY(-2px) scale(1.03); box-shadow:0 8px 22px rgba(13,27,42,0.28); }
+
+    /* ——— sections ——— */
+    section { padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 4vw, 2.5rem); }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; font-weight: 500;
+      color: var(--sage); letter-spacing: 0.15em; text-transform: uppercase;
+      margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .section-label::before { content:''; display:inline-block; width:24px; height:2px; background:var(--sage); }
+    h1 { font-family:'Outfit',sans-serif; font-weight:800; line-height:1.08; letter-spacing:-0.04em; }
+    h2 { font-family:'Outfit',sans-serif; font-weight:700; line-height:1.15; letter-spacing:-0.03em; }
+    h3 { font-family:'Outfit',sans-serif; font-weight:600; line-height:1.25; }
+
+    /* ——— animations ——— */
+    .reveal { opacity:0; transform:translateY(38px); filter:blur(6px); transition:opacity 0.8s cubic-bezier(0.22,1,0.36,1),transform 0.8s cubic-bezier(0.22,1,0.36,1),filter 0.8s cubic-bezier(0.22,1,0.36,1); }
+    .reveal.visible { opacity:1; transform:translateY(0); filter:blur(0); }
+    .reveal-d1{transition-delay:.1s}.reveal-d2{transition-delay:.2s}.reveal-d3{transition-delay:.3s}.reveal-d4{transition-delay:.4s}
+    .reveal-scale { opacity:0; transform:scale(0.9); filter:blur(6px); transition:opacity 0.7s ease,transform 0.7s cubic-bezier(0.22,1,0.36,1),filter 0.7s ease; }
+    .reveal-scale.visible { opacity:1; transform:scale(1); filter:blur(0); }
+    .reveal-left { opacity:0; transform:translateX(-46px); filter:blur(6px); transition:opacity 0.8s cubic-bezier(0.22,1,0.36,1),transform 0.8s cubic-bezier(0.22,1,0.36,1),filter 0.8s ease; }
+    .reveal-left.visible { opacity:1; transform:translateX(0); filter:blur(0); }
+    .reveal-right { opacity:0; transform:translateX(46px); filter:blur(6px); transition:opacity 0.8s cubic-bezier(0.22,1,0.36,1),transform 0.8s cubic-bezier(0.22,1,0.36,1),filter 0.8s ease; }
+    .reveal-right.visible { opacity:1; transform:translateX(0); filter:blur(0); }
+    .float-a { animation:float 5s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+    /* ——— scroll progress ——— */
+    .scroll-progress {
+      position:fixed; top:0; left:0; height:3px; width:0%;
+      background:linear-gradient(90deg,var(--sage),var(--taupe),var(--taupe-light));
+      z-index:300; transition:width 0.1s linear;
+      box-shadow:0 0 10px rgba(75,107,124,0.5);
+    }
+
+    /* ——— stagger ——— */
+    .stagger > * { opacity:0; transform:translateY(24px); transition:opacity 0.6s cubic-bezier(0.22,1,0.36,1),transform 0.6s cubic-bezier(0.22,1,0.36,1); }
+    .stagger.visible > * { opacity:1; transform:translateY(0); }
+    .stagger.visible > *:nth-child(1){transition-delay:.05s}
+    .stagger.visible > *:nth-child(2){transition-delay:.13s}
+    .stagger.visible > *:nth-child(3){transition-delay:.21s}
+    .stagger.visible > *:nth-child(4){transition-delay:.29s}
+    .stagger.visible > *:nth-child(5){transition-delay:.37s}
+    .stagger.visible > *:nth-child(6){transition-delay:.45s}
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+      .reveal,.reveal-scale,.reveal-left,.reveal-right,.stagger > * { filter:none !important; }
+    }
+
+    /* ——— glass / cards ——— */
+    .glass { background:var(--card); backdrop-filter:blur(20px); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow); }
+
+    /* ——— buttons ——— */
+    .btn-primary {
+      background:var(--navy); color:white;
+      padding:0.85rem 2rem; border-radius:99px;
+      font-family:'Outfit',sans-serif; font-size:1rem; font-weight:600;
+      border:none; cursor:pointer;
+      transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.25s,background 0.25s;
+      box-shadow:0 4px 20px rgba(13,27,42,0.2);
+      position:relative; overflow:hidden; isolation:isolate;
+      display:inline-flex; align-items:center; justify-content:center; gap:0.5rem;
+    }
+    .btn-primary::before {
+      content:''; position:absolute; inset:0; z-index:-1;
+      background:linear-gradient(120deg,transparent 20%,rgba(255,255,255,0.25) 50%,transparent 80%);
+      transform:translateX(-120%); transition:transform 0.6s ease;
+    }
+    .btn-primary:hover:not(:disabled)::before { transform:translateX(120%); }
+    .btn-primary:hover:not(:disabled) { transform:translateY(-3px) scale(1.02); box-shadow:0 12px 34px rgba(13,27,42,0.32); background:var(--navy-soft); }
+    .btn-primary:active:not(:disabled) { transform:translateY(-1px) scale(0.99); }
+    .btn-primary:disabled { opacity:0.4; cursor:not-allowed; }
+    .btn-outline {
+      background:transparent; color:var(--navy);
+      padding:0.85rem 2rem; border-radius:99px;
+      font-family:'Outfit',sans-serif; font-size:1rem; font-weight:600;
+      border:2px solid rgba(13,27,42,0.2); cursor:pointer;
+      transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1),border-color 0.25s,background 0.25s;
+      display:inline-flex; align-items:center; justify-content:center; gap:0.5rem;
+    }
+    .btn-outline:hover { transform:translateY(-3px) scale(1.02); border-color:var(--taupe); background:rgba(61,90,128,0.08); }
+    .btn-outline:active { transform:translateY(-1px) scale(0.99); }
+
+    /* ——— hero ——— */
+    #home {
+      min-height:100vh; display:flex; align-items:center; padding-top:6rem;
+      background:linear-gradient(160deg,#FFFFFF 0%,#F2EFE7 55%,#C8D9E6 100%);
+      position:relative; overflow:hidden;
+    }
+    .blob { position:absolute; border-radius:50%; filter:blur(80px); pointer-events:none; z-index:0; }
+    .blob1 { width:580px; height:580px; background:rgba(61,90,128,0.13); top:-80px; right:-120px; }
+    .blob2 { width:420px; height:420px; background:rgba(75,107,124,0.09); bottom:0; left:-80px; }
+    .blob3 { width:300px; height:300px; background:rgba(200,217,230,0.35); top:40%; left:42%; }
+    .hero-inner {
+      position:relative; z-index:1;
+      display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center;
+      max-width:1100px; margin:0 auto; width:100%;
+    }
+    .hero-text h1 { font-size:clamp(2.4rem,4.5vw,4rem); color:var(--navy); }
+    .hero-text h1 em { font-style:normal; color:var(--taupe); }
+    .hero-sub { font-size:1.05rem; color:var(--navy); opacity:0.65; margin:1.5rem 0 2.5rem; max-width:480px; }
+    .btn-row { display:flex; gap:1rem; flex-wrap:wrap; }
+
+    /* ——— campus card ——— */
+    .campus-card {
+      background:white; border-radius:24px;
+      box-shadow:var(--shadow-lg); border:1px solid var(--border);
+      padding:1.25rem; position:relative; max-width:520px; width:100%;
+      transition:transform 0.5s cubic-bezier(0.22,1,0.36,1),box-shadow 0.5s;
+      z-index:1;
+    }
+    .campus-card:hover {
+      transform:translateY(-6px) rotateX(4deg) rotateY(-4deg) scale(1.015);
+      box-shadow:0 34px 90px rgba(13,27,42,0.2);
+    }
+    .campus-badge {
+      position:absolute; top:1rem; right:1rem;
+      background:linear-gradient(135deg, var(--navy), var(--taupe)) !important;
+      color:white;
+      font-family:'JetBrains Mono',monospace; font-size:0.65rem;
+      padding:0.3rem 0.75rem; border-radius:99px; letter-spacing:0.05em;
+      display:flex; align-items:center; gap:0.4rem;
+      box-shadow:0 6px 18px rgba(13,27,42,0.22);
+    }
+    .campus-badge::before {
+      content:''; width:6px; height:6px; border-radius:50%; background:var(--sage-light);
+      box-shadow:0 0 0 0 rgba(152,180,199,0.7); animation:pulse-dot 2.2s ease-in-out infinite;
+    }
+
+    /* ——— problem ——— */
+    #problem { background:var(--ivory); }
+    .journey { display:flex; align-items:center; flex-wrap:wrap; gap:0.4rem; margin-top:3rem; }
+    .j-step { display:flex; flex-direction:column; align-items:center; gap:0.4rem; flex:1; min-width:80px; }
+    .j-icon {
+      width:56px; height:56px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center; font-size:1.3rem;
+      background:linear-gradient(150deg, var(--ivory), var(--sage-pale));
+      border:2px solid var(--border); transition:transform 0.3s;
+      box-shadow:0 6px 18px rgba(13,27,42,0.07), inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+    .j-icon .lucide { width: 1.6rem; height: 1.6rem; }
+    .j-step:hover .j-icon { transform:scale(1.12); }
+    .j-icon.bad { background:linear-gradient(150deg, #fff, rgba(27,38,59,0.08)); border-color:rgba(27,38,59,0.3); }
+    .j-label { font-size:0.7rem; font-weight:500; opacity:0.6; text-align:center; }
+    .j-arr { font-size:1rem; color:var(--taupe-light); }
+
+    /* ——— problem & solution ——— */
+    #solution { background:var(--beige-pale); }
+    .ps-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-top:2.5rem; }
+    .ps-card { padding:2rem; border-radius:20px; transition:transform 0.35s cubic-bezier(0.22,1,0.36,1),box-shadow 0.35s,border-color 0.35s; }
+    .ps-card.prob { background:rgba(27,38,59,0.07); border:1px solid rgba(27,38,59,0.18); }
+    .ps-card.sol  { background:rgba(75,107,124,0.08); border:1px solid rgba(75,107,124,0.22); }
+    .ps-card:hover { transform:translateY(-5px); box-shadow:var(--shadow-lg); }
+    .ps-card.prob:hover { border-color:rgba(27,38,59,0.4); }
+    .ps-card.sol:hover { border-color:rgba(75,107,124,0.5); }
+    .ps-card ul { padding-left:1.2rem; }
+    .ps-card li { font-size:0.875rem; opacity:0.8; margin-bottom:0.5rem; transition:transform 0.2s,opacity 0.2s; }
+    .ps-card li:hover { transform:translateX(5px); opacity:1; }
+    .info-box { margin-top:1.5rem; padding:1.5rem 2rem; background:white; border-radius:16px; border:1px solid var(--border); transition:transform 0.35s cubic-bezier(0.22,1,0.36,1),box-shadow 0.35s; position:relative; overflow:hidden; }
+    .info-box:hover { transform:translateY(-4px); box-shadow:var(--shadow); }
+    .info-box h3 { margin-bottom:0.5rem; font-size:1rem; }
+    .info-box p { font-size:0.875rem; opacity:0.72; }
+    .res-card::after, .info-box::after {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background:linear-gradient(90deg, var(--sage), var(--taupe-light), transparent);
+      transform:scaleX(0); transform-origin:left; transition:transform 0.45s cubic-bezier(0.22,1,0.36,1);
+    }
+    .res-card:hover::after, .info-box:hover::after { transform:scaleX(1); }
+
+    /* ——— core ——— */
+    #core { background:var(--navy); color:white; position:relative; overflow:hidden; }
+    #core::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 70% 50%,rgba(61,90,128,0.12),transparent 60%); pointer-events:none; }
+    #core h2 { color:white; font-size:clamp(2rem,4vw,3rem); }
+    .pillars { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-top:3rem; }
+    .pillar {
+      padding:2rem; background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.09); border-radius:20px;
+      transition:background 0.35s,transform 0.35s cubic-bezier(0.22,1,0.36,1),border-color 0.35s,box-shadow 0.35s;
+    }
+    .pillar:hover { background:rgba(255,255,255,0.09); transform:translateY(-8px); border-color:rgba(152,180,199,0.4); box-shadow:0 20px 50px rgba(0,0,0,0.25); }
+    .pillar-ico {
+      width:54px; height:54px; border-radius:16px;
+      display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg, rgba(152,180,199,0.24), rgba(75,107,124,0.10));
+      border:1px solid rgba(152,180,199,0.22);
+      font-size:1.55rem; margin-bottom:1.25rem;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.08);
+      transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .pillar-ico .lucide { width: 1.8rem; height: 1.8rem; stroke: var(--sage-light); }
+    .pillar:hover .pillar-ico { transform:scale(1.18) rotate(-8deg); }
+    .pillar-rule { font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--sage-light); letter-spacing:0.1em; margin-bottom:0.5rem; }
+    .pillar-title { font-family:'Outfit',sans-serif; font-size:1.25rem; font-weight:700; color:white; margin-bottom:0.6rem; }
+    .pillar-desc { font-size:0.85rem; opacity:0.58; }
+
+    /* ——— smart parking ——— */
+    #smart-parking { background:var(--ivory); }
+    .zone-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; margin-bottom:1.5rem; }
+    .zone-card {
+      padding:1.5rem; border-radius:18px; cursor:pointer;
+      border:2px solid var(--border); background:white;
+      transition:all 0.25s;
+    }
+    .zone-card:hover { border-color:var(--taupe); box-shadow:var(--shadow); transform:translateY(-3px); }
+    .zone-card.active { border-color:var(--sage); box-shadow:0 0 0 3px rgba(75,107,124,0.14); }
+    .zone-card.full-zone { border-color:rgba(27,38,59,0.28); }
+    .zone-card.full-zone:hover { border-color:rgba(27,38,59,0.5); }
+    .zone-id { font-family:'JetBrains Mono',monospace; font-size:0.78rem; font-weight:600; color:var(--taupe); margin-bottom:0.35rem; }
+    .zone-num { font-family:'Outfit',sans-serif; font-size:2rem; font-weight:800; color:var(--navy); line-height:1; }
+    .zone-num.red { color:var(--red); }
+    .zone-info { font-size:0.72rem; opacity:0.45; margin-top:0.2rem; }
+    .zone-badge { display:inline-block; font-size:0.62rem; font-weight:600; padding:0.2rem 0.55rem; border-radius:99px; margin-top:0.75rem; font-family:'JetBrains Mono',monospace; }
+    .bg-sage   { background:rgba(75,107,124,0.14); color:#4B6B7C; }
+    .bg-red    { background:rgba(27,38,59,0.12); color:var(--red); }
+    .bg-orange { background:rgba(61,90,128,0.14); color:#3D5A80; }
+    .zone-detail {
+      padding:2rem; border-radius:20px;
+      background:linear-gradient(135deg,var(--navy) 0%,var(--navy-soft) 100%);
+      color:white; display:flex; align-items:center; gap:3rem; flex-wrap:wrap; min-height:140px;
+      position:relative; overflow:hidden;
+    }
+    .zone-detail::before {
+      content:''; position:absolute; inset:0; pointer-events:none;
+      background:radial-gradient(circle at 88% 20%, rgba(152,180,199,0.16), transparent 55%);
+    }
+    .zd-main h3 { font-family:'Outfit',sans-serif; font-size:2rem; font-weight:800; }
+    .zd-main p { opacity:0.5; font-size:0.85rem; margin-top:0.25rem; }
+    .zd-stats { display:flex; gap:2rem; }
+    .zd-s .v { font-family:'Outfit',sans-serif; font-size:1.5rem; font-weight:700; color:var(--sage-light); }
+    .zd-s .l { font-size:0.65rem; opacity:0.4; font-family:'JetBrains Mono',monospace; text-transform:uppercase; margin-top:2px; }
+    .zd-action { margin-left:auto; }
+
+    /* ——— reservation ——— */
+    #reservation { background:var(--beige-pale); }
+    .res-wrap { display:grid; grid-template-columns:1fr 1fr; gap:2.5rem; align-items:start; margin-top:3rem; }
+    .res-card { padding:2rem; border-radius:20px; background:white; border:1px solid var(--border); box-shadow:var(--shadow); transition:transform 0.35s cubic-bezier(0.22,1,0.36,1),box-shadow 0.35s; position:relative; overflow:hidden; }
+    .res-card:hover { transform:translateY(-5px); box-shadow:var(--shadow-lg); }
+    .res-row { display:flex; justify-content:space-between; align-items:center; padding:0.7rem 0; border-bottom:1px solid var(--border); transition:background 0.2s,padding-left 0.2s; }
+    .res-row:hover { background:rgba(75,107,124,0.05); padding-left:0.5rem; }
+    .res-row:last-of-type { border-bottom:none; }
+    .res-lbl { font-size:0.72rem; opacity:0.4; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:0.05em; }
+    .res-val { font-weight:600; font-size:0.9rem; }
+    .priority-high { color:var(--sage); font-family:'JetBrains Mono',monospace; font-weight:700; }
+    .no-show { margin-top:1.25rem; padding:1rem 1.25rem; background:rgba(61,90,128,0.1); border:1px solid rgba(61,90,128,0.28); border-radius:12px; font-size:0.8rem; opacity:0.8; }
+
+    /* ——— gate ——— */
+    #gate { background:var(--navy); color:white; text-align:center; position:relative; overflow:hidden; }
+    #gate h2 { color:white; }
+    .gate-ui {
+      max-width:440px; margin:3rem auto 0;
+      background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.09);
+      border-radius:24px; padding:2rem;
+    }
+    .gate-step {
+      display:flex; align-items:center; gap:1rem;
+      padding:0.85rem 0; border-bottom:1px solid rgba(255,255,255,0.07);
+      opacity:0; transform:translateX(-16px);
+      transition:opacity 0.5s ease,transform 0.5s ease;
+      font-family:'JetBrains Mono',monospace; font-size:0.82rem;
+    }
+    .gate-step:last-child { border-bottom:none; }
+    .gate-step.show { opacity:1; transform:translateX(0); }
+    .gate-step .gi { font-size:1.1rem; min-width:28px; text-align:center; display:flex; align-items:center; justify-content:center; }
+    .gate-step .gi .lucide { width:1.4rem; height:1.4rem; stroke:var(--sage-light); }
+    .gate-step .gt { color:rgba(255,255,255,0.7); }
+    .gate-step.done .gt { color:var(--sage-light); }
+    .gate-status {
+      margin-top:1.5rem; padding:0.9rem;
+      background:rgba(75,107,124,0.12); border:1px solid rgba(75,107,124,0.25);
+      border-radius:12px; font-family:'Outfit',sans-serif; font-size:1rem; font-weight:700;
+      color:var(--sage-light); opacity:0; transition:opacity 0.5s;
+      display:flex; align-items:center; justify-content:center; gap:0.5rem;
+    }
+    .gate-status.show { opacity:1; }
+
+    /* ——— active ——— */
+    #active { background:var(--ivory); }
+    .active-card {
+      max-width:480px; margin:3rem auto 0;
+      padding:2.5rem; border-radius:24px;
+      border:2px solid rgba(75,107,124,0.25);
+      box-shadow:0 0 0 6px rgba(75,107,124,0.06),var(--shadow);
+      text-align:center; background:white;
+      transition:transform 0.4s cubic-bezier(0.22,1,0.36,1),box-shadow 0.4s;
+    }
+    .active-card:hover { transform:translateY(-6px); box-shadow:0 0 0 6px rgba(75,107,124,0.1),var(--shadow-lg); }
+    .sess-dot { width:12px; height:12px; border-radius:50%; background:var(--sage); margin:0 auto 1rem; animation:pulse-dot 2.5s infinite; }
+    .sess-lbl { font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--sage); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.4rem; }
+    .sess-zone { font-family:'Outfit',sans-serif; font-size:3rem; font-weight:900; color:var(--navy); letter-spacing:-0.04em; background:linear-gradient(135deg, var(--navy) 0%, var(--taupe) 90%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+    .sess-avail { font-size:0.9rem; opacity:0.45; margin-top:0.2rem; }
+    .sess-meta { display:flex; justify-content:center; gap:2.5rem; margin:1.5rem 0 2rem; }
+    .sm-i .v { font-family:'Outfit',sans-serif; font-size:1.2rem; font-weight:700; }
+    .sm-i .l { font-size:0.65rem; opacity:0.38; text-transform:uppercase; letter-spacing:0.05em; font-family:'JetBrains Mono',monospace; }
+
+    /* ——— how it works ——— */
+    #how-it-works { background:var(--beige-pale); }
+    .steps { display:flex; flex-direction:column; gap:0; margin-top:3rem; max-width:620px; position:relative; }
+    .steps::before { content:''; position:absolute; left:27px; top:0; bottom:0; width:2px; background:linear-gradient(to bottom,var(--sage),var(--taupe-light),transparent); }
+    .hiw { display:flex; gap:1.5rem; align-items:flex-start; padding:1.5rem 0; transition:transform 0.3s cubic-bezier(0.22,1,0.36,1); }
+    .hiw:hover { transform:translateX(8px); }
+    .hiw-n {
+      width:56px; height:56px; border-radius:50%; flex-shrink:0;
+      background:linear-gradient(150deg, var(--ivory), var(--sage-pale)) !important;
+      border:2px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      font-family:'JetBrains Mono',monospace; font-size:0.68rem; font-weight:600;
+      color:var(--taupe); z-index:1; transition:border-color 0.3s,color 0.3s,transform 0.4s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s;
+      box-shadow:0 6px 18px rgba(13,27,42,0.06), inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+    .hiw:hover .hiw-n { border-color:var(--sage); color:var(--sage); transform:scale(1.12); box-shadow:0 6px 18px rgba(75,107,124,0.25); }
+    .hiw-c h3 { font-size:1.1rem; margin-bottom:0.35rem; }
+    .hiw-c p { font-size:0.875rem; opacity:0.62; }
+
+    /* ——— dashboard ——— */
+    #dashboard { background:var(--navy); color:white; position:relative; overflow:hidden; }
+    #dashboard h2 { color:white; }
+    .dash-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-top:3rem; }
+    .dash-card {
+      padding:1.5rem; border-radius:18px;
+      background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);
+      transition:background 0.35s,transform 0.35s cubic-bezier(0.22,1,0.36,1),border-color 0.35s,box-shadow 0.35s;
+      position:relative; overflow:hidden;
+    }
+    .dash-card:hover { background:rgba(255,255,255,0.09); transform:translateY(-6px); border-color:rgba(152,180,199,0.35); box-shadow:0 18px 46px rgba(0,0,0,0.22); }
+    .dash-card::after {
+      content:''; position:absolute; top:0; left:0; right:0; height:2px;
+      background:linear-gradient(90deg, var(--sage-light), transparent);
+      transform:scaleX(0); transform-origin:left; transition:transform 0.45s cubic-bezier(0.22,1,0.36,1);
+    }
+    .dash-card:hover::after { transform:scaleX(1); }
+    .sched-class { transition:transform 0.3s cubic-bezier(0.22,1,0.36,1),box-shadow 0.3s; }
+    .sched-class:hover { transform:translateY(-3px) scale(1.02); box-shadow:0 10px 26px rgba(0,0,0,0.18); }
+    .dash-card.wide { grid-column:1/-1; }
+    .d-lbl { font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--taupe-light); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.6rem; opacity:0.65; }
+    .d-val { font-family:'Outfit',sans-serif; font-size:1.8rem; font-weight:800; color:white; }
+    .d-sub { font-size:0.78rem; opacity:0.4; margin-top:0.25rem; }
+    .live-bar { height:6px; background:rgba(255,255,255,0.1); border-radius:99px; margin-top:1rem; overflow:hidden; }
+    .live-fill { height:100%; width:57%; background:linear-gradient(90deg,var(--sage),var(--taupe-light)); border-radius:99px; transition:width 1s ease; position:relative; overflow:hidden; }
+    .live-fill::after {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      transform:translateX(-100%); animation:shimmer 2.6s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0%{transform:translateX(-100%)} 60%,100%{transform:translateX(200%)} }
+    .sched-class { padding:1rem; border-radius:12px; }
+    .sched-class.active   { background:rgba(75,107,124,0.1); border:1px solid rgba(75,107,124,0.2); }
+    .sched-class.inactive { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); }
+    .sched-time { font-family:'JetBrains Mono',monospace; font-size:0.68rem; margin-bottom:0.3rem; }
+
+    /* ——— footer ——— */
+    footer { background:#0D1B2A; color:white; text-align:center; padding:3rem 2rem; font-size:0.85rem; opacity:0.55; position:relative; }
+    footer::before {
+      content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+      width:min(680px, 80%); height:2px;
+      background:linear-gradient(90deg, transparent, var(--sage), var(--taupe-light), transparent);
+    }
+    footer strong {
+      opacity:1; font-family:'Outfit',sans-serif; font-size:1.3rem; font-weight:800;
+      background:linear-gradient(120deg, #fff, var(--taupe-light));
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    }
+
+    /* ——— modal ——— */
+    .overlay {
+      position:fixed; inset:0; z-index:200;
+      background:rgba(13,27,42,0.55); backdrop-filter:blur(8px);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity 0.3s;
+    }
+    .overlay.open { opacity:1; pointer-events:all; }
+    .modal {
+      background:white; border-radius:24px; padding:2.5rem;
+      max-width:420px; width:90%; box-shadow:var(--shadow-lg);
+      transform:scale(0.94); transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .overlay.open .modal { transform:scale(1); }
+    .m-row { display:flex; justify-content:space-between; align-items:center; padding:0.65rem 0; border-bottom:1px solid var(--border); }
+    .m-row:last-of-type { border-bottom:none; }
+    .m-lbl { font-size:0.7rem; opacity:0.38; font-family:'JetBrains Mono',monospace; text-transform:uppercase; }
+    .m-val { font-weight:600; font-size:0.9rem; }
+    .m-actions { display:flex; gap:0.75rem; margin-top:1.5rem; }
+    .m-success { text-align:center; padding:0.5rem 0; }
+    .m-success .ck { font-size:3rem; margin-bottom:0.5rem; display:block; }
+    .m-success .ck .lucide { width:3.5rem; height:3.5rem; stroke:var(--sage); }
+
+    /* ——— additional graphical enhancements ——— */
+    .grain {
+      position:fixed; inset:0; z-index:150; pointer-events:none; opacity:0.035;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      mix-blend-mode:overlay;
+    }
+
+    #problem::after, #solution::after, #smart-parking::after,
+    #reservation::after, #active::after, #how-it-works::after {
+      content:''; position:absolute; top:0; right:0;
+      width:340px; height:340px; z-index:0; pointer-events:none;
+      background-image:radial-gradient(rgba(61,90,128,0.14) 1.4px, transparent 1.4px);
+      background-size:18px 18px;
+      -webkit-mask-image:radial-gradient(ellipse at top right, black, transparent 70%);
+      mask-image:radial-gradient(ellipse at top right, black, transparent 70%);
+      opacity:0.7;
+    }
+    #problem, #solution, #smart-parking, #reservation, #active, #how-it-works { position:relative; }
+    #problem .container, #solution .container, #smart-parking .container,
+    #reservation .container, #active .container, #how-it-works .container { position:relative; z-index:1; }
+
+    #home::after {
+      content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+      background-image:radial-gradient(rgba(61,90,128,0.13) 1.2px, transparent 1.2px);
+      background-size:26px 26px;
+      -webkit-mask-image:radial-gradient(ellipse 75% 65% at 45% 42%, black, transparent 78%);
+      mask-image:radial-gradient(ellipse 75% 65% at 45% 42%, black, transparent 78%);
+      opacity:0.55;
+    }
+
+    #dashboard::before, #gate::before {
+      content:''; position:absolute; z-index:0; pointer-events:none;
+      width:460px; height:460px; border-radius:50%;
+      background:radial-gradient(circle, rgba(75,107,124,0.18), transparent 70%);
+      filter:blur(10px);
+    }
+    #dashboard::before { top:-160px; right:-100px; }
+    #gate::before { bottom:-180px; left:-120px; background:radial-gradient(circle, rgba(61,90,128,0.22), transparent 70%); }
+
+    #dashboard .container, #gate .container { position:relative; z-index:1; }
+    #core::after, #dashboard::after, #gate::after {
+      content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+      background-image:linear-gradient(rgba(152,180,199,0.05) 1px, transparent 1px),
+                       linear-gradient(90deg, rgba(152,180,199,0.05) 1px, transparent 1px);
+      background-size:56px 56px;
+      -webkit-mask-image:linear-gradient(180deg, transparent, black 28%, black 72%, transparent);
+      mask-image:linear-gradient(180deg, transparent, black 28%, black 72%, transparent);
+    }
+
+    .section-label::after {
+      content:''; width:5px; height:5px; border-radius:50%; background:var(--sage);
+      box-shadow:0 0 0 0 rgba(75,107,124,0.5); animation:pulse-dot 2.5s ease-in-out infinite;
+      margin-left:-0.25rem;
+    }
+
+    .zone-detail { position:relative; overflow:hidden; }
+    .zone-detail::before { content:''; position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 88% 20%, rgba(152,180,199,0.16), transparent 55%); }
+
+    .campus-card { position:relative; z-index:1; }
+    .campus-card::before {
+      content:''; position:absolute; inset:-1px; border-radius:24px; z-index:-1; pointer-events:none;
+      background:linear-gradient(135deg, rgba(75,107,124,0.35), rgba(200,217,230,0.15), rgba(61,90,128,0.3));
+      opacity:0; transition:opacity 0.5s;
+    }
+    .campus-card:hover::before { opacity:1; }
+
+    .float-b { animation:float-b 6.5s ease-in-out infinite; }
+    .float-c { animation:float-c 5.5s ease-in-out infinite; }
+    @keyframes float-b { 0%,100%{transform:translateY(0) translateX(0)} 50%{transform:translateY(-14px) translateX(4px)} }
+    @keyframes float-c { 0%,100%{transform:translateY(0) translateX(0)} 50%{transform:translateY(12px) translateX(-5px)} }
+
+    .map-stage { position:relative; display:flex; justify-content:center; }
+    .float-chip {
+      position:absolute; z-index:4; pointer-events:none;
+      background:rgba(255,255,255,0.82); backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,0.9);
+      border-radius:16px; padding:0.7rem 0.95rem;
+      box-shadow:0 18px 44px rgba(13,27,42,0.16);
+      display:flex; align-items:center; gap:0.65rem;
+    }
+    .float-chip .fc-ico {
+      width:38px; height:38px; border-radius:11px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+      background:linear-gradient(135deg, rgba(152,180,199,0.32), rgba(75,107,124,0.14));
+      border:1px solid rgba(152,180,199,0.3);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+    .float-chip .fc-ico .lucide { width:1.2rem; height:1.2rem; stroke:var(--taupe); }
+    .float-chip .fc-num {
+      font-family:'Outfit',sans-serif; font-weight:700; font-size:1.15rem; line-height:1;
+      background:linear-gradient(135deg, var(--navy), var(--taupe));
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .float-chip .fc-label { font-size:0.68rem; color:var(--navy); opacity:0.6; letter-spacing:0.02em; margin-top:2px; }
+    .fc-dot { width:8px; height:8px; border-radius:50%; background:var(--sage); box-shadow:0 0 0 0 rgba(75,107,124,0.5); animation:pulse-dot 2.2s ease-in-out infinite; }
+    .chip-live  { top:-22px; left:-30px; }
+    .chip-spots { bottom:24px; right:-42px; }
+    .chip-walk  { bottom:-20px; left:12px; }
+
+    /* ——— hero stats ——— */
+    .hero-stats { display:flex; gap:2.25rem; margin-top:2.75rem; flex-wrap:wrap; }
+    .hero-stat { display:flex; flex-direction:column; gap:0.15rem; }
+    .hero-stat .hs-num {
+      font-family:'Outfit',sans-serif; font-weight:800; font-size:1.75rem; line-height:1; letter-spacing:-0.03em;
+      background:linear-gradient(135deg, var(--navy) 0%, var(--taupe) 95%);
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .hero-stat .hs-label { font-size:0.78rem; color:var(--navy); opacity:0.58; letter-spacing:0.02em; }
+    .hero-stat + .hero-stat { padding-left:2.25rem; border-left:1px solid rgba(13,27,42,0.1); margin-left:-0.75rem; }
+
+    /* ——— responsive ——— */
+    @media(max-width:1180px){ .chip-live{left:-8px} .chip-spots{right:-14px} .chip-walk{left:0} }
+
+    @media(max-width:900px){
+      nav { padding:1rem 1.25rem; }
+      .nav-links { display:none; }
+      section { padding:5rem 1.25rem; }
+      .hero-inner { grid-template-columns:1fr; gap:2rem; }
+      .ps-grid,.pillars,.zone-grid,.res-wrap,.dash-grid { grid-template-columns:1fr; }
+      .dash-card.wide { grid-column:auto; }
+      .zone-detail { flex-direction:column; }
+      .zd-action { margin-left:0; }
+      .j-arr { display:none; }
+      .zone-grid { grid-template-columns:1fr 1fr; }
+      .hero-stats { gap:1.2rem; }
+      .hero-stat + .hero-stat { padding-left:1.2rem; margin-left:-0.5rem; }
+    }
+
+    @media (max-width: 480px) {
+      .zone-grid { grid-template-columns:1fr; }
+      .float-chip { display: none; }
+      .sess-meta { gap:1.2rem; }
+    }
+
+    /* ensure lucide icons inherit color */
+    .lucide { stroke: currentColor; fill: none; }
+    .pillar-ico .lucide { stroke: var(--sage-light); }
+    .float-chip .fc-ico .lucide { stroke: var(--taupe); }
+    .gate-step .gi .lucide { stroke: var(--sage-light); }
+    .m-success .ck .lucide { stroke: var(--sage); }
+    .j-icon .lucide { stroke: var(--navy); }
+    .j-icon.bad .lucide { stroke: var(--red); }
+
+    /* ——— greeting ——— */
+    .greet { font-family:'Outfit',sans-serif; font-size:1.5rem; font-weight:600; color:var(--taupe); letter-spacing:-0.02em; margin-bottom:1rem; }
+
+    /* ——— sign in ——— */
+    body.locked { overflow:hidden; }
+    #signin {
+      position:fixed; inset:0; z-index:400; display:flex; align-items:center; justify-content:center;
+      padding:1.25rem; overflow:hidden;
+      background:linear-gradient(160deg,#FFFFFF 0%,#F2EFE7 55%,#C8D9E6 100%);
+      transition:opacity 0.5s ease, visibility 0.5s;
+    }
+    #signin.hide { opacity:0; visibility:hidden; pointer-events:none; }
+    .si-card { position:relative; z-index:1; width:100%; max-width:420px; padding:2.5rem 2.25rem; background:white; border:1px solid var(--border); border-radius:24px; box-shadow:var(--shadow-lg); }
+    .si-card .nav-logo { margin-bottom:1.75rem; }
+    .si-card h2 { font-size:1.9rem; margin-bottom:0.4rem; }
+    .si-sub { font-size:0.9rem; opacity:0.6; margin-bottom:1.5rem; }
+    .si-field { display:block; margin-bottom:1rem; }
+    .si-field span { display:block; font-family:'JetBrains Mono',monospace; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; opacity:0.5; margin-bottom:0.35rem; }
+    .si-field input { width:100%; padding:0.8rem 1rem; font-family:'Inter',sans-serif; font-size:0.95rem; color:var(--navy); background:var(--beige-pale); border:1px solid var(--border); border-radius:14px; outline:none; transition:border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+    .si-field input:focus { border-color:var(--sage); background:white; box-shadow:0 0 0 3px rgba(75,107,124,0.14); }
+    .si-err { min-height:1.2rem; font-size:0.8rem; color:var(--red); margin-bottom:0.5rem; }
+  </style>
+</head>
+<body class="locked">
+
+  <!-- SIGN IN -->
+  <div id="signin">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+    <form class="si-card" id="si-form" autocomplete="off" onsubmit="return signIn(event)">
+      <div class="nav-logo"><div class="nav-dot"></div>PARK<span>LY</span></div>
+      <h2>Welcome back</h2>
+      <p class="si-sub">Sign in with your university account.</p>
+      <label class="si-field"><span>Name</span><input id="si-name" type="text" value="Sara" /></label>
+      <label class="si-field"><span>University email</span><input id="si-email" type="email" value="sara@sharjah.ac.ae" /></label>
+      <label class="si-field"><span>Password</span><input id="si-pass" type="password" value="demo1234" /></label>
+      <div class="si-err" id="si-err" role="alert"></div>
+      <button class="btn-primary" type="submit" style="width:100%;"><i data-lucide="log-in" class="lucide"></i> Sign in</button>
+    </form>
+  </div>
+
+  <!-- SCROLL PROGRESS -->
+  <div class="scroll-progress" id="scroll-progress"></div>
+
+  <!-- GRAIN OVERLAY -->
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="nav-logo"><div class="nav-dot"></div>PARK<span>LY</span></div>
+    <div class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#problem">Problem &amp; Solution</a>
+      <a href="#smart-parking">Smart Parking</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#smart-parking" class="nav-cta">Find Parking</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="home">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+    <div class="blob blob3"></div>
+    <div class="hero-inner">
+      <div class="hero-text">
+        <p class="greet reveal">Good morning, <span id="gname">Sara</span></p>
+        <div class="section-label reveal">Smart University Parking</div>
+        <h1 class="reveal reveal-d1">Parking should get you to class.<br><em>Not make you late.</em></h1>
+        <p class="hero-sub reveal reveal-d2">Parkly connects your class schedule with real-time parking availability, giving students priority when parking is limited while keeping parking flexible when university life changes.</p>
+        <div class="btn-row reveal reveal-d3">
+          <button class="btn-primary" onclick="goto('smart-parking')"><i data-lucide="search" class="lucide"></i> Find My Parking</button>
+          <button class="btn-outline" onclick="goto('how-it-works')"><i data-lucide="info" class="lucide"></i> See How It Works</button>
+        </div>
+        <div class="hero-stats reveal reveal-d4">
+          <div class="hero-stat"><span class="hs-num">1,200+</span><span class="hs-label">Live parking spots</span></div>
+          <div class="hero-stat"><span class="hs-num">12</span><span class="hs-label">Campus zones</span></div>
+          <div class="hero-stat"><span class="hs-num">&lt;30s</span><span class="hs-label">To reserve &amp; enter</span></div>
+        </div>
+      </div>
+
+      <!-- CAMPUS MAP -->
+      <div class="reveal-scale reveal-d2 map-stage">
+        <div class="float-chip chip-live float-b">
+          <span class="fc-dot"></span>
+          <div><div class="fc-num" style="font-size:0.9rem;">Zone B · Open</div><div class="fc-label">Near Computing &amp; IT</div></div>
+        </div>
+        <div class="float-chip chip-spots float-c">
+          <div class="fc-ico"><i data-lucide="square-parking" class="lucide"></i></div>
+          <div><div class="fc-num">48</div><div class="fc-label">spots available</div></div>
+        </div>
+        <div class="float-chip chip-walk float-a">
+          <div class="fc-ico"><i data-lucide="footprints" class="lucide"></i></div>
+          <div><div class="fc-num" style="font-size:0.9rem;">2 min walk</div><div class="fc-label">to your next class</div></div>
+        </div>
+        <div class="campus-card float-a">
+          <div class="campus-badge">UoS Main Campus · Live</div>
+          <svg viewBox="0 0 440 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+            <defs>
+              <clipPath id="cc"><rect width="440" height="300" rx="12"/></clipPath>
+              <filter id="ds"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0D1B2A" flood-opacity="0.14"/></filter>
+            </defs>
+            <rect width="440" height="300" fill="#F2EFE7" rx="12"/>
+            <g clip-path="url(#cc)">
+              <g transform="rotate(-22, 220, 150)">
+                <rect x="50" y="35" width="365" height="240" fill="#C8D9E6" rx="5" opacity="0.7"/>
+                <rect x="50"  y="35"  width="95"  height="70"  rx="3" fill="#EAF2F8" opacity="0.7"/>
+                <rect x="320" y="35"  width="95"  height="70"  rx="3" fill="#EAF2F8" opacity="0.7"/>
+                <rect x="50"  y="185" width="95"  height="90"  rx="3" fill="#EAF2F8" opacity="0.7"/>
+                <rect x="320" y="165" width="95"  height="110" rx="3" fill="#EAF2F8" opacity="0.7"/>
+                <rect x="205" y="35" width="24" height="240" fill="#98B4C7" opacity="0.85"/>
+                <line x1="217" y1="35" x2="217" y2="275" stroke="white" stroke-width="1.5" stroke-dasharray="10 7" opacity="0.6"/>
+                <rect x="50" y="148" width="365" height="20" fill="#98B4C7" opacity="0.85"/>
+                <line x1="50" y1="158" x2="415" y2="158" stroke="white" stroke-width="1.5" stroke-dasharray="10 7" opacity="0.6"/>
+                <rect x="50"  y="96"  width="365" height="12" fill="#D8E6F2" opacity="0.6"/>
+                <rect x="148" y="35"  width="14"  height="240" fill="#D8E6F2" opacity="0.6"/>
+                <rect x="298" y="35"  width="14"  height="240" fill="#D8E6F2" opacity="0.6"/>
+                <rect x="56" y="42" width="82" height="52" rx="4" fill="#4B6B7C" filter="url(#ds)"/>
+                <rect x="59" y="45" width="76" height="8"  rx="2" fill="rgba(255,255,255,0.18)"/>
+                <rect x="64" y="58" width="10" height="16" rx="1" fill="rgba(255,255,255,0.15)"/>
+                <rect x="78" y="58" width="10" height="16" rx="1" fill="rgba(255,255,255,0.15)"/>
+                <rect x="92" y="58" width="10" height="16" rx="1" fill="rgba(255,255,255,0.15)"/>
+                <text x="97" y="79" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="600" fill="white" transform="rotate(22, 97, 79)">Medical Campus</text>
+                <rect x="313" y="42" width="100" height="52" rx="4" fill="#3D5A80" filter="url(#ds)"/>
+                <rect x="316" y="45" width="94"  height="8"  rx="2" fill="rgba(255,255,255,0.15)"/>
+                <rect x="322" y="58" width="9"   height="16" rx="1" fill="rgba(255,255,255,0.15)"/>
+                <rect x="335" y="58" width="9"   height="16" rx="1" fill="rgba(255,255,255,0.15)"/>
+                <rect x="348" y="58" width="9"   height="16" rx="1" fill="rgba(255,255,255,0.15)"/>
+                <rect x="361" y="58" width="9"   height="16" rx="1" fill="rgba(255,255,255,0.15)"/>
+                <rect x="374" y="58" width="9"   height="16" rx="1" fill="rgba(255,255,255,0.15)"/>
+                <text x="363" y="81" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="600" fill="white" transform="rotate(22, 363, 81)">Colleges (Women)</text>
+                <rect x="221" y="42" width="80" height="52" rx="4" fill="#0D1B2A" filter="url(#ds)"/>
+                <rect x="224" y="45" width="74" height="8"  rx="2" fill="rgba(255,255,255,0.08)"/>
+                <rect x="230" y="58" width="7"  height="18" rx="1" fill="rgba(75,107,124,0.5)"/>
+                <rect x="241" y="58" width="7"  height="18" rx="1" fill="rgba(75,107,124,0.5)"/>
+                <rect x="252" y="58" width="7"  height="18" rx="1" fill="rgba(75,107,124,0.5)"/>
+                <rect x="263" y="58" width="7"  height="18" rx="1" fill="rgba(75,107,124,0.5)"/>
+                <rect x="274" y="58" width="7"  height="18" rx="1" fill="rgba(75,107,124,0.5)"/>
+                <text x="261" y="83" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="700" fill="rgba(255,255,255,0.85)" transform="rotate(22, 261, 83)">Admin Building</text>
+                <rect x="56" y="103" width="56" height="44" rx="4" fill="#98B4C7" filter="url(#ds)"/>
+                <text x="84" y="128" text-anchor="middle" font-family="sans-serif" font-size="5.5" font-weight="600" fill="white" transform="rotate(22, 84, 128)">Fine Arts</text>
+                <rect x="156" y="44" width="48" height="38" rx="4" fill="#C8D9E6" filter="url(#ds)"/>
+                <text x="180" y="66" text-anchor="middle" font-family="sans-serif" font-size="5.5" font-weight="600" fill="#0D1B2A" transform="rotate(22, 180, 66)">Business</text>
+                <rect x="156" y="103" width="48" height="42" rx="4" fill="#4B6B7C" filter="url(#ds)"/>
+                <rect x="159" y="106" width="42" height="7" rx="2" fill="rgba(255,255,255,0.2)"/>
+                <text x="180" y="128" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="700" fill="white" transform="rotate(22, 180, 128)">Computing &amp; IT</text>
+                <rect x="221" y="103" width="80" height="42" rx="4" fill="#1B263B" filter="url(#ds)"/>
+                <rect x="224" y="106" width="74" height="7" rx="2" fill="rgba(255,255,255,0.08)"/>
+                <rect x="230" y="118" width="6" height="16" rx="1" fill="rgba(152,180,199,0.5)"/>
+                <rect x="240" y="118" width="6" height="16" rx="1" fill="rgba(152,180,199,0.5)"/>
+                <rect x="250" y="118" width="6" height="16" rx="1" fill="rgba(152,180,199,0.5)"/>
+                <rect x="260" y="118" width="6" height="16" rx="1" fill="rgba(152,180,199,0.5)"/>
+                <rect x="270" y="118" width="6" height="16" rx="1" fill="rgba(152,180,199,0.5)"/>
+                <rect x="280" y="118" width="6" height="16" rx="1" fill="rgba(152,180,199,0.5)"/>
+                <text x="261" y="133" text-anchor="middle" font-family="sans-serif" font-size="6.5" font-weight="700" fill="rgba(255,255,255,0.85)" transform="rotate(22, 261, 133)">Engineering</text>
+                <rect x="313" y="103" width="100" height="42" rx="4" fill="#4B6B7C" filter="url(#ds)"/>
+                <text x="363"  y="127" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="600" fill="white" transform="rotate(22, 363, 127)">Dorms &amp; Accommodation</text>
+                <rect x="156" y="163" width="48" height="36" rx="4" fill="#98B4C7" filter="url(#ds)"/>
+                <text x="180"  y="185" text-anchor="middle" font-family="sans-serif" font-size="6.5" font-weight="700" fill="white" transform="rotate(22, 180, 185)">Library</text>
+                <rect x="221" y="163" width="76" height="38" rx="4" fill="#C8D9E6" filter="url(#ds)"/>
+                <text x="259"  y="186" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="600" fill="#0D1B2A" transform="rotate(22, 259, 186)">Student Center</text>
+                <rect x="313" y="163" width="100" height="48" rx="4" fill="#98B4C7" filter="url(#ds)"/>
+                <text x="363"  y="190" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="600" fill="white" transform="rotate(22, 363, 190)">Sports Complex</text>
+                <rect x="313" y="218" width="100" height="58" rx="4" fill="#4B6B7C" filter="url(#ds)"/>
+                <rect x="342" y="232" width="28" height="32" rx="0" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                <circle cx="356" cy="248" r="7" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.8"/>
+                <text x="363"  y="273" text-anchor="middle" font-family="sans-serif" font-size="5.5" font-weight="600" fill="white" transform="rotate(22, 363, 273)">Football Field</text>
+                <rect x="156" y="218" width="58" height="42" rx="4" fill="#C8D9E6" filter="url(#ds)"/>
+                <text x="185"  y="242" text-anchor="middle" font-family="sans-serif" font-size="5.5" font-weight="600" fill="#0D1B2A" transform="rotate(22, 185, 242)">Colleges (Men)</text>
+                <rect x="221" y="218" width="86" height="52" rx="5" fill="rgba(75,107,124,0.18)" stroke="#4B6B7C" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <circle cx="241" cy="237" r="9" fill="#3D5A80" opacity="0.9"/>
+                <text x="241" y="241" text-anchor="middle" font-family="monospace" font-size="7.5" font-weight="700" fill="white" transform="rotate(22, 241, 241)">42</text>
+                <text x="275" y="248" text-anchor="middle" font-family="monospace" font-size="6.5" font-weight="600" fill="#4B6B7C" transform="rotate(22, 275, 248)">A-P9</text>
+                <text x="273" y="258" text-anchor="middle" font-family="sans-serif" font-size="5.5" fill="#0D1B2A" opacity="0.7" transform="rotate(22, 273, 258)">12 Available</text>
+                <rect x="56"  y="218" width="94" height="52" rx="5" fill="rgba(75,107,124,0.18)" stroke="#4B6B7C" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <circle cx="76" cy="237" r="9" fill="#3D5A80" opacity="0.9"/>
+                <text x="76" y="241" text-anchor="middle" font-family="monospace" font-size="7.5" font-weight="700" fill="white" transform="rotate(22, 76, 241)">43</text>
+                <text x="118" y="248" text-anchor="middle" font-family="monospace" font-size="6.5" font-weight="600" fill="#4B6B7C" transform="rotate(22, 118, 248)">C-P3</text>
+                <text x="116" y="258" text-anchor="middle" font-family="sans-serif" font-size="5.5" fill="#0D1B2A" opacity="0.7" transform="rotate(22, 116, 258)">24 Available</text>
+                <rect x="56"  y="163" width="94" height="48" rx="5" fill="rgba(27,38,59,0.1)" stroke="#1B263B" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <circle cx="76" cy="181" r="9" fill="#1B263B" opacity="0.9"/>
+                <text x="76" y="185" text-anchor="middle" font-family="monospace" font-size="7.5" font-weight="700" fill="white" transform="rotate(22, 76, 185)">44</text>
+                <text x="118" y="192" text-anchor="middle" font-family="monospace" font-size="6.5" font-weight="700" fill="#1B263B" transform="rotate(22, 118, 192)">A-P3</text>
+                <text x="116" y="201" text-anchor="middle" font-family="sans-serif" font-size="5.5" fill="#1B263B" opacity="0.9" transform="rotate(22, 116, 201)">FULL</text>
+                <circle cx="144" cy="70"  r="8"  fill="#4B6B7C" opacity="0.68"/>
+                <circle cx="190" cy="55"  r="5"  fill="#4B6B7C" opacity="0.68"/>
+                <circle cx="300" cy="62"  r="7"  fill="#4B6B7C" opacity="0.65"/>
+                <circle cx="310" cy="80"  r="5"  fill="#4B6B7C" opacity="0.6"/>
+                <circle cx="410" cy="60"  r="5"  fill="#4B6B7C" opacity="0.6"/>
+                <circle cx="132" cy="147" r="7"  fill="#4B6B7C" opacity="0.65"/>
+                <circle cx="212" cy="147" r="5"  fill="#4B6B7C" opacity="0.6"/>
+                <circle cx="308" cy="150" r="6"  fill="#4B6B7C" opacity="0.65"/>
+                <circle cx="406" cy="148" r="5"  fill="#4B6B7C" opacity="0.6"/>
+                <circle cx="145" cy="210" r="5"  fill="#4B6B7C" opacity="0.6"/>
+                <circle cx="212" cy="215" r="5"  fill="#4B6B7C" opacity="0.6"/>
+                <circle cx="306" cy="213" r="6"  fill="#4B6B7C" opacity="0.6"/>
+                <circle cx="400" cy="218" r="5"  fill="#4B6B7C" opacity="0.6"/>
+                <circle cx="88"  cy="95"  r="5"  fill="#4B6B7C" opacity="0.6"/>
+                <circle cx="200" cy="270" r="5"  fill="#4B6B7C" opacity="0.6"/>
+              </g>
+              <rect x="6" y="268" width="170" height="24" rx="5" fill="rgba(242,239,231,0.95)"/>
+              <circle cx="18"  cy="280" r="5"  fill="#4B6B7C"/>
+              <text x="26"  y="284" font-family="sans-serif" font-size="6.5" fill="#0D1B2A">Available</text>
+              <circle cx="74"  cy="280" r="5"  fill="#1B263B"/>
+              <text x="82"  y="284" font-family="sans-serif" font-size="6.5" fill="#0D1B2A">Full</text>
+              <circle cx="110" cy="280" r="5"  fill="#3D5A80"/>
+              <text x="118" y="284" font-family="sans-serif" font-size="6.5" fill="#0D1B2A">Car Parking</text>
+              <text x="434" y="295" text-anchor="end" font-family="sans-serif" font-size="6" fill="#0D1B2A" opacity="0.4">University of Sharjah</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section id="problem">
+    <div class="container">
+      <div class="section-label reveal">The Daily Reality</div>
+      <h2 style="font-size:clamp(2rem,3.5vw,2.8rem);" class="reveal reveal-d1">Every morning starts the same.</h2>
+      <p style="max-width:500px;opacity:0.6;margin-top:0.6rem;" class="reveal reveal-d2">Students spend critical minutes searching for parking before a lecture even begins.</p>
+      <div class="journey reveal reveal-d3 stagger">
+        <div class="j-step"><div class="j-icon"><i data-lucide="car" class="lucide"></i></div><div class="j-label">Arrive on Campus</div></div>
+        <div class="j-arr"><i data-lucide="arrow-right" class="lucide"></i></div>
+        <div class="j-step"><div class="j-icon"><i data-lucide="search" class="lucide"></i></div><div class="j-label">Search for a Spot</div></div>
+        <div class="j-arr"><i data-lucide="arrow-right" class="lucide"></i></div>
+        <div class="j-step"><div class="j-icon"><i data-lucide="refresh-cw" class="lucide"></i></div><div class="j-label">Circle Around</div></div>
+        <div class="j-arr"><i data-lucide="arrow-right" class="lucide"></i></div>
+        <div class="j-step"><div class="j-icon"><i data-lucide="frown" class="lucide"></i></div><div class="j-label">No Space Found</div></div>
+        <div class="j-arr"><i data-lucide="arrow-right" class="lucide"></i></div>
+        <div class="j-step"><div class="j-icon"><i data-lucide="square-parking" class="lucide"></i></div><div class="j-label">Park Far Away</div></div>
+        <div class="j-arr"><i data-lucide="arrow-right" class="lucide"></i></div>
+        <div class="j-step"><div class="j-icon bad"><i data-lucide="timer" class="lucide"></i></div><div class="j-label">Rush to Class Late</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM & SOLUTION -->
+  <section id="solution">
+    <div class="container">
+      <div class="section-label reveal">Problem &amp; Solution</div>
+      <h2 style="font-size:clamp(2rem,3.5vw,2.8rem);" class="reveal reveal-d1">Why parking fails students</h2>
+      <div class="ps-grid">
+        <div class="ps-card prob reveal reveal-d1">
+          <h3 style="color:var(--red);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;"><i data-lucide="x-circle" class="lucide"></i> The Problem</h3>
+          <ul>
+            <li>No system to predict when a zone fills up</li>
+            <li>8 AM students compete equally with 2 PM students for nearby spots</li>
+            <li>No real-time feedback before entering campus</li>
+            <li>Remote zones underutilised while nearby zones overflow</li>
+            <li>Time lost searching adds stress before class begins</li>
+          </ul>
+        </div>
+        <div class="ps-card sol reveal reveal-d2">
+          <h3 style="color:var(--sage);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;"><i data-lucide="check-circle" class="lucide"></i> The Solution</h3>
+          <ul>
+            <li>Connect student timetable to parking allocation</li>
+            <li>Upcoming-class students get priority for nearby zones</li>
+            <li>Live availability visible before arriving on campus</li>
+            <li>Session ends on vehicle exit, not class end</li>
+            <li>Remote zones always open, no reservation needed</li>
+          </ul>
+        </div>
+      </div>
+      <div class="info-box reveal reveal-d3">
+        <h3 style="display:flex;align-items:center;gap:0.5rem;"><i data-lucide="microscope" class="lucide"></i> Mini Research</h3>
+        <p>Parking congestion at universities is a well-documented challenge, particularly during morning peak hours when multiple faculties start simultaneously. Schedule-aware systems that allocate limited resources based on urgency are an established approach in transportation management. At UoS, multiple zones exist at varying distances from faculties — a priority system can distribute demand intelligently across these zones without requiring new physical infrastructure.</p>
+      </div>
+      <div class="info-box reveal reveal-d4" style="margin-top:1rem;background:rgba(75,107,124,0.05);border-color:rgba(75,107,124,0.2);">
+        <h3 style="display:flex;align-items:center;gap:0.5rem;"><i data-lucide="lightbulb" class="lucide"></i> Why It Matters</h3>
+        <p>Universities already collect student schedule data. Parkly bridges schedule data with zone occupancy data to make smarter allocation decisions automatically — improving the daily experience of thousands of students without adding new parking capacity.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CORE IDEA -->
+  <section id="core">
+    <div class="container" style="position:relative;z-index:1;">
+      <div class="section-label reveal">Core Logic</div>
+      <h2 class="reveal reveal-d1">Three rules.<br>Smarter parking.</h2>
+      <div class="pillars">
+        <div class="pillar reveal reveal-d1">
+          <div class="pillar-ico"><i data-lucide="calendar" class="lucide"></i></div>
+          <div class="pillar-rule">RULE 01</div>
+          <div class="pillar-title">Schedule = Priority</div>
+          <div class="pillar-desc">When parking is scarce, students with an upcoming class get priority for nearby zones. No class soon? You still park — just further out. Fair, automatic, no disputes.</div>
+        </div>
+        <div class="pillar reveal reveal-d2">
+          <div class="pillar-ico"><i data-lucide="radio" class="lucide"></i></div>
+          <div class="pillar-rule">RULE 02</div>
+          <div class="pillar-title">Real-Time Occupancy = Availability</div>
+          <div class="pillar-desc">Live zone data is calculated from sensors and active sessions. You see exactly how many spots are open before entering campus — no guessing, no circling.</div>
+        </div>
+        <div class="pillar reveal reveal-d3">
+          <div class="pillar-ico"><i data-lucide="car" class="lucide"></i></div>
+          <div class="pillar-rule">RULE 03</div>
+          <div class="pillar-title">Vehicle Exit = Session End</div>
+          <div class="pillar-desc">Your session stays active while your car is parked. Class ending does not end your session. Unexpected meetings are fine. When you drive out, the spot opens automatically.</div>
+        </div>
+      </div>
+      <div style="margin-top:2rem;padding:1.5rem 2rem;background:rgba(75,107,124,0.08);border:1px solid rgba(75,107,124,0.18);border-radius:16px;" class="reveal reveal-d4">
+        <p style="font-size:0.875rem;opacity:0.68;max-width:640px;color:white;">Priority only affects <em style="color:var(--sage-light);font-style:normal;">new parking allocations</em>. A student already parked is never displaced. A 15-minute grace period applies before vehicle arrival. Remote parking is always available with no reservation required.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SMART PARKING -->
+  <section id="smart-parking">
+    <div class="container">
+      <div class="section-label reveal">Live Zones</div>
+      <h2 style="font-size:clamp(2rem,3.5vw,2.8rem);" class="reveal reveal-d1">Smart Parking at UoS</h2>
+      <p style="opacity:0.55;margin-top:0.5rem;" class="reveal reveal-d2">Select a zone to see real-time details. Click Reserve to continue.</p>
+      <div style="margin-top:2rem;">
+        <div class="zone-grid reveal reveal-d2" id="zone-grid"></div>
+        <div class="zone-detail reveal reveal-d3" id="zone-detail">
+          <div class="zd-main">
+            <h3 id="zd-name">A-P9</h3>
+            <p id="zd-near">Near College of Computing &amp; Informatics</p>
+          </div>
+          <div class="zd-stats">
+            <div class="zd-s"><div class="v" id="zd-avail">12</div><div class="l">Available</div></div>
+            <div class="zd-s"><div class="v" id="zd-walk">4 min</div><div class="l">Walk</div></div>
+            <div class="zd-s"><div class="v" id="zd-total">28</div><div class="l">Total</div></div>
+          </div>
+          <div class="zd-action">
+            <button class="btn-primary" id="reserve-btn" onclick="openModal()"><i data-lucide="calendar-check" class="lucide"></i> Reserve Parking</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESERVATION -->
+  <section id="reservation">
+    <div class="container">
+      <div class="section-label reveal">Reservation Demo</div>
+      <h2 style="font-size:clamp(2rem,3.5vw,2.8rem);" class="reveal reveal-d1">Your spot, confirmed.</h2>
+      <div class="res-wrap">
+        <div class="reveal reveal-d1">
+          <div class="res-card">
+            <h3 style="margin-bottom:1.25rem;">Reservation Details</h3>
+            <div class="res-row"><span class="res-lbl">Zone</span><span class="res-val">A-P9</span></div>
+            <div class="res-row"><span class="res-lbl">Vehicle</span><span class="res-val">Toyota Camry</span></div>
+            <div class="res-row"><span class="res-lbl">Plate</span><span class="res-val" style="font-family:'JetBrains Mono',monospace;">UOS-12345</span></div>
+            <div class="res-row"><span class="res-lbl">Next Class</span><span class="res-val">8:00 AM · Computing</span></div>
+            <div class="res-row"><span class="res-lbl">Priority</span><span class="res-val priority-high">● HIGH</span></div>
+            <button class="btn-primary" style="width:100%;margin-top:1.5rem;" onclick="openModal()"><i data-lucide="calendar-check" class="lucide"></i> Reserve Parking</button>
+          </div>
+          <div class="no-show">
+            <strong>Grace Period:</strong> If your vehicle doesn't arrive within 15 minutes, the spot is released to the next student. Your priority is preserved until the class starts.
+          </div>
+        </div>
+        <div class="reveal reveal-d2">
+          <div class="res-card">
+            <h3 style="margin-bottom:1.25rem;">Priority Logic</h3>
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+              <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                <span style="background:var(--sage);color:white;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;flex-shrink:0;margin-top:2px;">1</span>
+                <p style="font-size:0.875rem;opacity:0.75;">Class in the next 30–60 min → <strong>HIGH</strong> priority for nearby zones.</p>
+              </div>
+              <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                <span style="background:var(--taupe-light);color:var(--navy);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;flex-shrink:0;margin-top:2px;">2</span>
+                <p style="font-size:0.875rem;opacity:0.75;">No upcoming class → <strong>STANDARD</strong> priority. Directed to a zone with available space.</p>
+              </div>
+              <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                <span style="background:var(--beige);color:var(--navy);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;flex-shrink:0;margin-top:2px;">3</span>
+                <p style="font-size:0.875rem;opacity:0.75;">Once parked, <strong>never displaced</strong>. Priority only affects new allocations.</p>
+              </div>
+              <div style="display:flex;gap:0.75rem;align-items:flex-start;">
+                <span style="background:#F2EFE7;color:var(--navy);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;flex-shrink:0;margin-top:2px;">4</span>
+                <p style="font-size:0.875rem;opacity:0.75;">Remote zones always open — <strong>no reservation required</strong>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GATE -->
+  <section id="gate">
+    <div class="container" style="position:relative;z-index:1;text-align:center;">
+      <div class="section-label reveal" style="justify-content:center;">Gate System</div>
+      <h2 class="reveal reveal-d1" style="font-size:clamp(2rem,3.5vw,2.8rem);color:white;">Smart gate. Zero friction.</h2>
+      <p style="opacity:0.45;margin-top:0.5rem;" class="reveal reveal-d2">Plate recognition verifies your reservation instantly. No ticket. No wait.</p>
+      <div class="gate-ui reveal reveal-d3" id="gate-ui">
+        <div class="gate-step" id="gs1"><div class="gi"><i data-lucide="camera" class="lucide"></i></div><div class="gt">VEHICLE DETECTED — UOS-12345</div></div>
+        <div class="gate-step done" id="gs2"><div class="gi"><i data-lucide="check-circle" class="lucide"></i></div><div class="gt">RESERVATION VALID</div></div>
+        <div class="gate-step done" id="gs3"><div class="gi"><i data-lucide="door-open" class="lucide"></i></div><div class="gt">GATE OPENING</div></div>
+        <div class="gate-step done" id="gs4"><div class="gi"><i data-lucide="circle-dot" class="lucide"></i></div><div class="gt">ACTIVE PARKING SESSION STARTED</div></div>
+        <div class="gate-status" id="gate-status"><i data-lucide="check-circle" class="lucide"></i> Welcome — Drive to Zone A-P9</div>
+      </div>
+      <button class="btn-outline" style="margin-top:2rem;border-color:rgba(255,255,255,0.18);color:white;" onclick="runGate()"><i data-lucide="play" class="lucide"></i> Simulate Gate Entry</button>
+    </div>
+  </section>
+
+  <!-- ACTIVE PARKING -->
+  <section id="active">
+    <div class="container" style="text-align:center;">
+      <div class="section-label reveal" style="justify-content:center;">Active Session</div>
+      <h2 style="font-size:clamp(2rem,3.5vw,2.8rem);" class="reveal reveal-d1">Your session stays active until your vehicle exits.</h2>
+      <p style="opacity:0.58;max-width:480px;margin:0.75rem auto 0;" class="reveal reveal-d2">Class ending does not end your session. The spot opens only when you drive out.</p>
+      <div class="active-card reveal-scale reveal-d3" id="active-card">
+        <div class="sess-dot" id="sess-dot"></div>
+        <div class="sess-lbl" id="sess-lbl">Active Session</div>
+        <div class="sess-zone">A-P9</div>
+        <div class="sess-avail" id="sess-avail">12 available in zone</div>
+        <div class="sess-meta">
+          <div class="sm-i"><div class="v">UOS-12345</div><div class="l">Plate</div></div>
+          <div class="sm-i"><div class="v" id="sess-time">0:00</div><div class="l">Duration</div></div>
+          <div class="sm-i"><div class="v">A-P9</div><div class="l">Zone</div></div>
+        </div>
+        <button class="btn-primary" id="leave-btn" style="background:var(--red);box-shadow:0 4px 20px rgba(27,38,59,0.28);" onclick="doLeave()"><i data-lucide="car" class="lucide"></i> I'm Leaving</button>
+      </div>
+      <div id="exit-msg" style="display:none;margin-top:1.5rem;max-width:420px;margin-left:auto;margin-right:auto;">
+        <div style="padding:1.5rem 2rem;background:rgba(75,107,124,0.08);border:1px solid rgba(75,107,124,0.22);border-radius:16px;">
+          <div style="font-size:2.5rem;margin-bottom:0.5rem;"><i data-lucide="check-circle" class="lucide" style="width:3rem;height:3rem;stroke:var(--sage);"></i></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--sage);letter-spacing:0.1em;margin-bottom:0.25rem;">VEHICLE EXIT DETECTED · SESSION ENDED</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;">Zone A-P9 updated</div>
+          <div style="font-size:0.85rem;opacity:0.6;margin-top:0.4rem;">Availability: 12 → <strong id="new-avail" style="color:var(--sage);">13 available</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works">
+    <div class="container">
+      <div class="section-label reveal">Process</div>
+      <h2 style="font-size:clamp(2rem,3.5vw,2.8rem);" class="reveal reveal-d1">How Parkly works</h2>
+      <p style="opacity:0.55;max-width:480px;margin-top:0.5rem;" class="reveal reveal-d2">Five steps from timetable to parked car.</p>
+      <div class="steps">
+        <div class="hiw reveal reveal-d1">
+          <div class="hiw-n">01</div>
+          <div class="hiw-c"><h3>Connect Your Timetable</h3><p>Parkly links to your university student portal to read your class schedule. Your data stays within the university system — no third-party sharing.</p></div>
+        </div>
+        <div class="hiw reveal reveal-d2">
+          <div class="hiw-n">02</div>
+          <div class="hiw-c"><h3>Check Real-Time Availability</h3><p>On the morning of your class, open Parkly to see live zone occupancy across campus. Zones near your faculty are highlighted based on your schedule.</p></div>
+        </div>
+        <div class="hiw reveal reveal-d3">
+          <div class="hiw-n">03</div>
+          <div class="hiw-c"><h3>Get Priority When It Matters</h3><p>If parking is limited, students with an upcoming class receive priority for nearby zones. No class soon? You can still park — in a zone with available space.</p></div>
+        </div>
+        <div class="hiw reveal reveal-d4">
+          <div class="hiw-n">04</div>
+          <div class="hiw-c"><h3>Reserve &amp; Enter Automatically</h3><p>Confirm your zone in the app. When you arrive, the gate reads your plate and opens automatically. Your session starts the moment you enter.</p></div>
+        </div>
+        <div class="hiw reveal">
+          <div class="hiw-n">05</div>
+          <div class="hiw-c"><h3>Leave Whenever You're Done</h3><p>Drive out when you're ready — after class, after a meeting, whenever. The exit gate detects your vehicle and ends the session automatically.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard">
+    <div class="container">
+      <div class="section-label reveal">Live Dashboard</div>
+      <h2 class="reveal reveal-d1" style="font-size:clamp(2rem,3.5vw,2.8rem);">Everything at a glance.</h2>
+      <p class="reveal reveal-d2" style="opacity:0.45;margin-top:0.5rem;">Status, schedule, and live availability — unified in one view.</p>
+      <div class="dash-grid">
+        <div class="dash-card reveal reveal-d1">
+          <div class="d-lbl">Next Class</div>
+          <div class="d-val">8:00 AM</div>
+          <div class="d-sub">College of Computing &amp; Informatics · Hall C203</div>
+        </div>
+        <div class="dash-card reveal reveal-d2">
+          <div class="d-lbl">Assigned Parking</div>
+          <div class="d-val" style="color:var(--sage-light);">A-P9</div>
+          <div class="d-sub">HIGH PRIORITY · 4 min walk</div>
+        </div>
+        <div class="dash-card reveal reveal-d3">
+          <div class="d-lbl">Registered Vehicle</div>
+          <div class="d-val">Toyota Camry</div>
+          <div class="d-sub" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;">UOS-12345</div>
+        </div>
+        <div class="dash-card reveal reveal-d4">
+          <div class="d-lbl">Live Availability · A-P9</div>
+          <div class="d-val" id="dash-avail">12 Spaces</div>
+          <div class="d-sub">Of 28 total · Updated just now</div>
+          <div class="live-bar"><div class="live-fill" id="dash-fill"></div></div>
+        </div>
+        <div class="dash-card wide reveal reveal-d1">
+          <div class="d-lbl">Today's Schedule</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-top:0.75rem;">
+            <div class="sched-class active">
+              <div class="sched-time" style="color:var(--sage-light);">8:00 – 9:30</div>
+              <div style="font-weight:600;font-size:0.9rem;">Database Systems</div>
+              <div style="font-size:0.75rem;opacity:0.45;margin-top:0.2rem;">Computing · Hall C203</div>
+            </div>
+            <div class="sched-class inactive">
+              <div class="sched-time" style="color:var(--taupe-light);opacity:0.65;">10:30 – 12:00</div>
+              <div style="font-weight:600;font-size:0.9rem;">Software Engineering</div>
+              <div style="font-size:0.75rem;opacity:0.45;margin-top:0.2rem;">Computing · Lab B104</div>
+            </div>
+            <div class="sched-class inactive">
+              <div class="sched-time" style="color:var(--taupe-light);opacity:0.65;">1:00 – 2:30</div>
+              <div style="font-weight:600;font-size:0.9rem;">Computer Networks</div>
+              <div style="font-size:0.75rem;opacity:0.45;margin-top:0.2rem;">Computing · Hall C101</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <strong>PARKLY</strong>
+    <p style="margin-top:0.75rem;">Smart University Parking — University of Sharjah</p>
+    <p style="margin-top:0.25rem;font-size:0.75rem;">DesignAthon Project · 2025</p>
+  </footer>
+
+  <!-- MODAL -->
+  <div class="overlay" id="overlay" onclick="outsideClose(event)">
+    <div class="modal">
+      <div id="mc1">
+        <h3 style="margin-bottom:1.25rem;display:flex;align-items:center;gap:0.5rem;"><i data-lucide="square-parking" class="lucide"></i> Confirm Reservation</h3>
+        <div class="m-row"><span class="m-lbl">Zone</span><span class="m-val">A-P9 · Near Computing</span></div>
+        <div class="m-row"><span class="m-lbl">Vehicle</span><span class="m-val">Toyota Camry</span></div>
+        <div class="m-row"><span class="m-lbl">Plate</span><span class="m-val" style="font-family:'JetBrains Mono',monospace;">UOS-12345</span></div>
+        <div class="m-row"><span class="m-lbl">Next Class</span><span class="m-val">8:00 AM · Computing</span></div>
+        <div class="m-row"><span class="m-lbl">Priority</span><span class="m-val priority-high">● HIGH</span></div>
+        <div class="m-row"><span class="m-lbl">Grace Period</span><span class="m-val" style="font-size:0.85rem;opacity:0.6;">15 min after reservation</span></div>
+        <div class="m-actions">
+          <button class="btn-outline" style="flex:1;" onclick="closeModal()">Cancel</button>
+          <button class="btn-primary" style="flex:2;" onclick="confirmRes()">Confirm Reservation</button>
+        </div>
+      </div>
+      <div id="mc2" style="display:none;">
+        <div class="m-success">
+          <span class="ck"><i data-lucide="check-circle" class="lucide"></i></span>
+          <h3>Parking Reserved!</h3>
+          <p style="opacity:0.58;margin-top:0.3rem;">Zone A-P9 confirmed for UOS-12345</p>
+          <p style="margin-top:0.4rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--taupe);">Grace period: 15 minutes</p>
+          <div style="margin-top:1.75rem;display:flex;flex-direction:column;gap:0.75rem;">
+            <button class="btn-primary" style="width:100%;" onclick="simArrival()"><i data-lucide="map-pin" class="lucide"></i> Simulate Arrival →</button>
+            <button class="btn-outline" style="width:100%;" onclick="closeModal()">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ZONES
+    const zoneData = [
+      {id:'A-P9', avail:12, total:28, walk:'4 min', near:'Near Computing &amp; Informatics', full:false, badge:'HIGH PRIORITY', bc:'bg-sage'},
+      {id:'C-P3', avail:24, total:40, walk:'7 min', near:'Near Engineering Faculty',         full:false, badge:'AVAILABLE',     bc:'bg-sage'},
+      {id:'C-P5', avail:0,  total:36, walk:'6 min', near:'Near Student Center',              full:true,  badge:'FULL',          bc:'bg-red'},
+      {id:'B-P2', avail:8,  total:22, walk:'5 min', near:'Near Library',                     full:false, badge:'LIMITED',       bc:'bg-orange'},
+      {id:'D-P1', avail:45, total:60, walk:'12 min',near:'Remote — No Reservation Required', full:false, badge:'REMOTE',        bc:'bg-sage'},
+      {id:'A-P3', avail:3,  total:18, walk:'3 min', near:'Near Admin Building',              full:false, badge:'ALMOST FULL',   bc:'bg-orange'},
+    ];
+    let activeIdx = 0;
+
+    function renderZones() {
+      const g = document.getElementById('zone-grid');
+      g.innerHTML = '';
+      zoneData.forEach((z, i) => {
+        const d = document.createElement('div');
+        d.className = 'zone-card' + (z.full ? ' full-zone' : '') + (i === activeIdx ? ' active' : '');
+        d.onclick = () => pick(i);
+        d.innerHTML = `<div class="zone-id">${z.id}</div>
+          <div class="zone-num${z.full ? ' red' : ''}">${z.full ? 'FULL' : z.avail}</div>
+          <div class="zone-info">${z.full ? 'No spaces available' : z.avail + ' of ' + z.total + ' available'}</div>
+          <span class="zone-badge ${z.bc}">${z.badge}</span>`;
+        g.appendChild(d);
+      });
+    }
+
+    function pick(i) {
+      activeIdx = i;
+      const z = zoneData[i];
+      document.getElementById('zd-name').textContent = z.id;
+      document.getElementById('zd-near').innerHTML = z.near;
+      document.getElementById('zd-avail').textContent = z.full ? 'FULL' : z.avail;
+      document.getElementById('zd-walk').textContent = z.walk;
+      document.getElementById('zd-total').textContent = z.total;
+      const btn = document.getElementById('reserve-btn');
+      btn.textContent = z.full ? 'Zone Full' : 'Reserve Parking';
+      btn.disabled = z.full;
+      renderZones();
+    }
+
+    renderZones(); pick(0);
+
+    // MODAL
+    function openModal()  { document.getElementById('overlay').classList.add('open'); }
+    function closeModal() {
+      document.getElementById('overlay').classList.remove('open');
+      document.getElementById('mc1').style.display = '';
+      document.getElementById('mc2').style.display = 'none';
+    }
+    function outsideClose(e) { if (e.target.id === 'overlay') closeModal(); }
+    function confirmRes() { document.getElementById('mc1').style.display = 'none'; document.getElementById('mc2').style.display = ''; }
+    function simArrival() {
+      closeModal();
+      setTimeout(() => { goto('gate'); setTimeout(runGate, 700); }, 300);
+    }
+
+    // GATE
+    let gateRunning = false;
+    function runGate() {
+      if (gateRunning) return;
+      gateRunning = true;
+      ['gs1','gs2','gs3','gs4'].forEach(id => document.getElementById(id).classList.remove('show'));
+      document.getElementById('gate-status').classList.remove('show');
+      ['gs1','gs2','gs3','gs4'].forEach((id, i) => {
+        setTimeout(() => {
+          document.getElementById(id).classList.add('show');
+          if (i === 3) setTimeout(() => { document.getElementById('gate-status').classList.add('show'); gateRunning = false; }, 400);
+        }, i * 620);
+      });
+    }
+
+    // SESSION TIMER
+    let sessStart = Date.now(), sessActive = true;
+    setInterval(() => {
+      if (!sessActive) return;
+      const s = Math.floor((Date.now() - sessStart) / 1000);
+      const el = document.getElementById('sess-time');
+      if (el) el.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }, 1000);
+
+    // LEAVING
+    function doLeave() {
+      if (!sessActive) return;
+      sessActive = false;
+      document.getElementById('sess-dot').style.cssText = 'background:#ccc;animation:none;';
+      document.getElementById('sess-lbl').textContent = 'SESSION ENDED';
+      document.getElementById('sess-lbl').style.color = '#999';
+      const btn = document.getElementById('leave-btn');
+      btn.textContent = 'Exit Recorded'; btn.disabled = true; btn.style.background = '#999';
+      zoneData[0].avail = 13;
+      document.getElementById('sess-avail').textContent = '13 available in zone';
+      document.getElementById('dash-avail').textContent = '13 Spaces';
+      document.getElementById('dash-fill').style.width = '60%';
+      const em = document.getElementById('exit-msg');
+      em.style.cssText = 'display:block;opacity:0;transition:opacity 0.5s;max-width:420px;margin:1.5rem auto 0;';
+      setTimeout(() => em.style.opacity = '1', 60);
+      renderZones();
+    }
+
+    // SCROLL
+    function goto(id) { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+
+    // NAV + SCROLL PROGRESS + PARALLAX
+    const nav = document.getElementById('nav');
+    const progress = document.getElementById('scroll-progress');
+    const blob1 = document.querySelector('.blob1');
+    const blob2 = document.querySelector('.blob2');
+    let ticking = false;
+    function onScroll() {
+      const y = window.scrollY;
+      nav.classList.toggle('scrolled', y > 40);
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+      if (progress) progress.style.width = (docH > 0 ? (y / docH) * 100 : 0) + '%';
+      if (y < window.innerHeight) {
+        if (blob1) blob1.style.transform = 'translate3d(0,' + (y * 0.28) + 'px,0)';
+        if (blob2) blob2.style.transform = 'translate3d(0,' + (y * -0.18) + 'px,0)';
+      }
+      ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) { window.requestAnimationFrame(onScroll); ticking = true; }
+    }, { passive: true });
+
+    // REVEAL OBSERVER
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal,.reveal-scale,.reveal-left,.reveal-right,.stagger').forEach(el => obs.observe(el));
+
+    // AUTO GATE
+    let gateTriggered = false;
+    new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting && !gateTriggered) { gateTriggered = true; setTimeout(runGate, 900); } });
+    }, { threshold: 0.4 }).observe(document.getElementById('gate-ui'));
+
+    // SIGN IN
+    function signIn(e) {
+      e.preventDefault();
+      const name = document.getElementById('si-name').value.trim();
+      const email = document.getElementById('si-email').value.trim();
+      const pass = document.getElementById('si-pass').value;
+      const err = document.getElementById('si-err');
+      if (!name || !email || !pass) { err.textContent = 'Please fill in all fields.'; return false; }
+      err.textContent = '';
+      document.getElementById('gname').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+      document.getElementById('signin').classList.add('hide');
+      document.body.classList.remove('locked');
+      const hero = document.querySelectorAll('#home .reveal, #home .reveal-scale');
+      hero.forEach(el => el.classList.remove('visible'));
+      void document.body.offsetWidth;
+      setTimeout(() => hero.forEach(el => el.classList.add('visible')), 120);
+      window.scrollTo(0, 0);
+      return false;
+    }
+
+    // initialize lucide icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>
