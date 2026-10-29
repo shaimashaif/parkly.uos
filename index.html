@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -633,9 +632,47 @@
     .m-success .ck .lucide { stroke: var(--sage); }
     .j-icon .lucide { stroke: var(--navy); }
     .j-icon.bad .lucide { stroke: var(--red); }
+
+    /* ——— greeting ——— */
+    .greet { font-family:'Outfit',sans-serif; font-size:1.5rem; font-weight:600; color:var(--taupe); letter-spacing:-0.02em; margin-bottom:1rem; }
+
+    /* ——— sign in ——— */
+    body.locked { overflow:hidden; }
+    #signin {
+      position:fixed; inset:0; z-index:400; display:flex; align-items:center; justify-content:center;
+      padding:1.25rem; overflow:hidden;
+      background:linear-gradient(160deg,#FFFFFF 0%,#F2EFE7 55%,#C8D9E6 100%);
+      transition:opacity 0.5s ease, visibility 0.5s;
+    }
+    #signin.hide { opacity:0; visibility:hidden; pointer-events:none; }
+    .si-card { position:relative; z-index:1; width:100%; max-width:420px; padding:2.5rem 2.25rem; background:white; border:1px solid var(--border); border-radius:24px; box-shadow:var(--shadow-lg); }
+    .si-card .nav-logo { margin-bottom:1.75rem; }
+    .si-card h2 { font-size:1.9rem; margin-bottom:0.4rem; }
+    .si-sub { font-size:0.9rem; opacity:0.6; margin-bottom:1.5rem; }
+    .si-field { display:block; margin-bottom:1rem; }
+    .si-field span { display:block; font-family:'JetBrains Mono',monospace; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; opacity:0.5; margin-bottom:0.35rem; }
+    .si-field input { width:100%; padding:0.8rem 1rem; font-family:'Inter',sans-serif; font-size:0.95rem; color:var(--navy); background:var(--beige-pale); border:1px solid var(--border); border-radius:14px; outline:none; transition:border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+    .si-field input:focus { border-color:var(--sage); background:white; box-shadow:0 0 0 3px rgba(75,107,124,0.14); }
+    .si-err { min-height:1.2rem; font-size:0.8rem; color:var(--red); margin-bottom:0.5rem; }
   </style>
 </head>
-<body>
+<body class="locked">
+
+  <!-- SIGN IN -->
+  <div id="signin">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+    <form class="si-card" id="si-form" autocomplete="off" onsubmit="return signIn(event)">
+      <div class="nav-logo"><div class="nav-dot"></div>PARK<span>LY</span></div>
+      <h2>Welcome back</h2>
+      <p class="si-sub">Sign in with your university account.</p>
+      <label class="si-field"><span>Name</span><input id="si-name" type="text" value="Sara" /></label>
+      <label class="si-field"><span>University email</span><input id="si-email" type="email" value="sara@sharjah.ac.ae" /></label>
+      <label class="si-field"><span>Password</span><input id="si-pass" type="password" value="demo1234" /></label>
+      <div class="si-err" id="si-err" role="alert"></div>
+      <button class="btn-primary" type="submit" style="width:100%;"><i data-lucide="log-in" class="lucide"></i> Sign in</button>
+    </form>
+  </div>
 
   <!-- SCROLL PROGRESS -->
   <div class="scroll-progress" id="scroll-progress"></div>
@@ -663,6 +700,7 @@
     <div class="blob blob3"></div>
     <div class="hero-inner">
       <div class="hero-text">
+        <p class="greet reveal">Good morning, <span id="gname">Sara</span></p>
         <div class="section-label reveal">Smart University Parking</div>
         <h1 class="reveal reveal-d1">Parking should get you to class.<br><em>Not make you late.</em></h1>
         <p class="hero-sub reveal reveal-d2">Parkly connects your class schedule with real-time parking availability, giving students priority when parking is limited while keeping parking flexible when university life changes.</p>
@@ -940,7 +978,7 @@
             <div class="res-row"><span class="res-lbl">Zone</span><span class="res-val">A-P9</span></div>
             <div class="res-row"><span class="res-lbl">Vehicle</span><span class="res-val">Toyota Camry</span></div>
             <div class="res-row"><span class="res-lbl">Plate</span><span class="res-val" style="font-family:'JetBrains Mono',monospace;">UOS-12345</span></div>
-            <div class="res-row"><span class="res-lbl">Next Class</span><span class="res-val">10:00 AM · Computing</span></div>
+            <div class="res-row"><span class="res-lbl">Next Class</span><span class="res-val">8:00 AM · Computing</span></div>
             <div class="res-row"><span class="res-lbl">Priority</span><span class="res-val priority-high">● HIGH</span></div>
             <button class="btn-primary" style="width:100%;margin-top:1.5rem;" onclick="openModal()"><i data-lucide="calendar-check" class="lucide"></i> Reserve Parking</button>
           </div>
@@ -1061,7 +1099,7 @@
       <div class="dash-grid">
         <div class="dash-card reveal reveal-d1">
           <div class="d-lbl">Next Class</div>
-          <div class="d-val">10:00 AM</div>
+          <div class="d-val">8:00 AM</div>
           <div class="d-sub">College of Computing &amp; Informatics · Hall C203</div>
         </div>
         <div class="dash-card reveal reveal-d2">
@@ -1084,17 +1122,17 @@
           <div class="d-lbl">Today's Schedule</div>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-top:0.75rem;">
             <div class="sched-class active">
-              <div class="sched-time" style="color:var(--sage-light);">10:00 – 11:30</div>
+              <div class="sched-time" style="color:var(--sage-light);">8:00 – 9:30</div>
               <div style="font-weight:600;font-size:0.9rem;">Database Systems</div>
               <div style="font-size:0.75rem;opacity:0.45;margin-top:0.2rem;">Computing · Hall C203</div>
             </div>
             <div class="sched-class inactive">
-              <div class="sched-time" style="color:var(--taupe-light);opacity:0.65;">12:30 – 2:00</div>
+              <div class="sched-time" style="color:var(--taupe-light);opacity:0.65;">10:30 – 12:00</div>
               <div style="font-weight:600;font-size:0.9rem;">Software Engineering</div>
               <div style="font-size:0.75rem;opacity:0.45;margin-top:0.2rem;">Computing · Lab B104</div>
             </div>
             <div class="sched-class inactive">
-              <div class="sched-time" style="color:var(--taupe-light);opacity:0.65;">3:30 – 5:00</div>
+              <div class="sched-time" style="color:var(--taupe-light);opacity:0.65;">1:00 – 2:30</div>
               <div style="font-weight:600;font-size:0.9rem;">Computer Networks</div>
               <div style="font-size:0.75rem;opacity:0.45;margin-top:0.2rem;">Computing · Hall C101</div>
             </div>
@@ -1119,7 +1157,7 @@
         <div class="m-row"><span class="m-lbl">Zone</span><span class="m-val">A-P9 · Near Computing</span></div>
         <div class="m-row"><span class="m-lbl">Vehicle</span><span class="m-val">Toyota Camry</span></div>
         <div class="m-row"><span class="m-lbl">Plate</span><span class="m-val" style="font-family:'JetBrains Mono',monospace;">UOS-12345</span></div>
-        <div class="m-row"><span class="m-lbl">Next Class</span><span class="m-val">10:00 AM · Computing</span></div>
+        <div class="m-row"><span class="m-lbl">Next Class</span><span class="m-val">8:00 AM · Computing</span></div>
         <div class="m-row"><span class="m-lbl">Priority</span><span class="m-val priority-high">● HIGH</span></div>
         <div class="m-row"><span class="m-lbl">Grace Period</span><span class="m-val" style="font-size:0.85rem;opacity:0.6;">15 min after reservation</span></div>
         <div class="m-actions">
@@ -1277,6 +1315,26 @@
     new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting && !gateTriggered) { gateTriggered = true; setTimeout(runGate, 900); } });
     }, { threshold: 0.4 }).observe(document.getElementById('gate-ui'));
+
+    // SIGN IN
+    function signIn(e) {
+      e.preventDefault();
+      const name = document.getElementById('si-name').value.trim();
+      const email = document.getElementById('si-email').value.trim();
+      const pass = document.getElementById('si-pass').value;
+      const err = document.getElementById('si-err');
+      if (!name || !email || !pass) { err.textContent = 'Please fill in all fields.'; return false; }
+      err.textContent = '';
+      document.getElementById('gname').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+      document.getElementById('signin').classList.add('hide');
+      document.body.classList.remove('locked');
+      const hero = document.querySelectorAll('#home .reveal, #home .reveal-scale');
+      hero.forEach(el => el.classList.remove('visible'));
+      void document.body.offsetWidth;
+      setTimeout(() => hero.forEach(el => el.classList.add('visible')), 120);
+      window.scrollTo(0, 0);
+      return false;
+    }
 
     // initialize lucide icons
     lucide.createIcons();
